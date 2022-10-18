@@ -50,7 +50,7 @@ def stop_event():
         event = STOP
         event_simul_counter = 0
 
-
+count = 0
 while True:
     while not IS_CONNECTED.is_set():
         print("Not Connected.")
@@ -66,21 +66,9 @@ while True:
         if not cs.connected.is_set():
             IS_CONNECTED.clear()
             break
-        if event == IDLE:
-            cs.send("112233")
-            print(cs.reply_queue.get())
-        elif event == READY:
-            cs.send("112233")
-            print(cs.reply_queue.get())
-        elif event == START:
-            cs.send("112233")
-            print(cs.reply_queue.get())
-        elif event == PHOTO_TAKING:
-            cs.send("112233")
-            print(cs.reply_queue.get())
-        elif event == STOP:
-            cs.send("112233")
-            print(cs.reply_queue.get())
+        cs.send(str(count))
+        print(cs.reply_queue.get())
+        count += 1
 
 
         
