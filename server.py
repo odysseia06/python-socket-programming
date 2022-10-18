@@ -4,6 +4,13 @@ import struct
 import queue
 import threading
 import time
+from protocol import *
+
+IDROBOT = 1
+
+IDQR = 1
+IDRED = 2
+IDSTOP = 3
 
 class SocketServer(threading.Thread):
     def __init__(self, host, port):
@@ -15,6 +22,7 @@ class SocketServer(threading.Thread):
         self.outputs = []
         self.message_queues = {}
         self.online = threading.Event()
+        self.protocol = Protocol()
         self.daemon = True
 
     def startServer(self):

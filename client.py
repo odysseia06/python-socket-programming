@@ -6,6 +6,8 @@ import select
 import time
 import random
 
+IS_CONNECTED = threading.Event()
+
 class ContinuousClient(threading.Thread):
     def __init__(self, host, port):
         threading.Thread.__init__(self)
@@ -53,7 +55,6 @@ class ContinuousClient(threading.Thread):
 
     def run(self):
         while self.alive.is_set():
-            print(random.randint(0, 100))
             try:
                 r,_,_ = select.select([self.socket], [], [])
                 if r:
@@ -65,6 +66,7 @@ class ContinuousClient(threading.Thread):
                             self.reply_queue.put(data)
             except Exception as e:
                 self.connected.clear()
+                self.alive.clear()
                 #print(e)
                 
 
