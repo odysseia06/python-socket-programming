@@ -6,8 +6,6 @@ import select
 import time
 import random
 
-IS_CONNECTED = threading.Event()
-
 class ContinuousClient(threading.Thread):
     def __init__(self, host, port):
         threading.Thread.__init__(self)
@@ -30,9 +28,7 @@ class ContinuousClient(threading.Thread):
             print("Connection with server is made.")
             self.socket.setblocking(0)
             self.connected.set()
-            if not self.started.is_set():
-                self.start()
-                self.started.set()
+            
         except ConnectionRefusedError:
             print("Connection refused.")
             pass
@@ -55,19 +51,27 @@ class ContinuousClient(threading.Thread):
 
     def run(self):
         while self.alive.is_set():
-            try:
-                r,_,_ = select.select([self.socket], [], [])
-                if r:
-                    header_data = self._recv_n_bytes(4, self.socket).encode()
-                    if len(header_data) == 4:
-                        msg_len = struct.unpack('<L', header_data)[0]
-                        data = self._recv_n_bytes(msg_len, self.socket)
-                        if len(data) == msg_len:
-                            self.reply_queue.put(data)
-            except Exception as e:
-                self.connected.clear()
-                self.alive.clear()
-                #print(e)
+            if not self.connected.is_set():
+                self.connect()
+            else:
+                try:
+                    self.send("Hello")
+                    r,_,_ = select.select([self.socket], [], [])
+                    if r:
+                        header_data = self._recv_n_bytes(4, self.socket).encode()
+                        if len(header_data) == 4:
+                            msg_len = struct.unpack('<L', header_data)[0]
+                            data = self._recv_n_bytes(msg_len, self.socket)
+                            if len(data) == msg_len:
+                                self.reply_queue.put(data)
+                    try:
+                        print(self.reply_queue.get_nowait())
+                    except queue.Empty:
+                        pass
+                except Exception as e:
+                    self.connected.clear()
+                    
+                    #print(e)
                 
 
     def send(self, message):
